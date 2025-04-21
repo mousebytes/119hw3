@@ -10,7 +10,7 @@ r = Star(Union(Let 'b') (Cat (Let 'a')(Cat (Let 'b')(Let 'b'))))
 
 --helper function for str to regex
 str_to_re::String->RegExp
-str_to_re [] = Empty
+str_to_re [] = Star Empty
 str_to_re [c] = Let c
 str_to_re (c:cs) = Cat (Let c) (str_to_re cs)
 
@@ -46,7 +46,7 @@ ghci> Compact r
 
 inverse :: (Char -> String) -> FSM a -> FSM a
 inverse s (qs,ss,fs,d) = (qs,ss,fs,d') where
-    d' q c = step_through_string (qs,ss,fs,d) q (s c) -- send it fsm, cur state, string to create d' (s c means that it is sending our char,c,  to the s [substitution] function then it will be parsed by step_through_string)
+    d' q c = star d q (s c) -- send it fsm, cur state, string to create d' (s c means that it is sending our char,c,  to the s [substitution] function then it will be parsed by step_through_string)
     
 -- testing purposes -> delete later (Along with the m1 towards the bottom)
 inv = inverse s m1
@@ -128,7 +128,7 @@ m1 = ([0,1,2,3,4], 0, [0,3], d) where
 -- this Eq a=> was recommended by my IDE to fix the `elem` error -> ask wilson later
 rightq :: Eq a => [String] -> FSM a -> FSM a -- Inputs -> our ws, an FSM -- Output -> FSM
 rightq ws (qs,ss,fs,d) = (qs,ss,f',d) where -- qs,ss,d are the same, fs turns to f' via definition below (stolen from notes)
-    f' = [q | q <- qs, any (\w -> step_through_string (qs,ss,fs,d) q w `elem` fs) ws] 
+    f' = [q | q <- qs, any (\w -> star d q w `elem` fs) ws] 
     -- loop through every state in fsm
     -- for every q cehck if there's any string, w, in ws where we land in a final state
         -- if that's true then put that state in as a final state in f'
